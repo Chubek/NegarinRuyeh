@@ -6,7 +6,7 @@ class Document:
     height = 2048
     img = {}
     pixels = {}
-    layers = []
+    layers = {}
     images = []
     current_layer = ""
     doc_name = "Untitled"
@@ -40,7 +40,7 @@ class Document:
 
     def image_save(self, name):
         image = self.img[name]
-        self.layers.append(self.doc_name + "___" + name + "___.png")
+        self.layers[name] = self.doc_name + "___" + name + "___.png"
         image.save(self.doc_name + "___" + name + "___.png")
 
 
@@ -51,18 +51,24 @@ class Document:
             combined_im = Image.alpha_composite(self.images[i-1], self.images[i])
 
         self.restart_document()
-        self.create_layer_from_image(combined_im, "combined" )
+        self.create_layer_from_image(combined_im, "combined_base" )
 
     def restart_document(self):
         self.img = {}
         self.pixels = {}
         self.images = []
 
-        for image in self.layers:
-            os.remove(image)
+        for key, value in self.layers:
+            os.remove(key)
 
-        self.layers = []
+        self.layers = {}
+
+    def delete_layer(self, name):
+        to_remove = self.layers[name]
+        os.remove(to_remove)
 
 
+    def return_layers(self):
+        return self.layers
 
-
+    
