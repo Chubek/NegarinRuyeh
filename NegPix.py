@@ -1,4 +1,5 @@
 from PIL import Image
+import os
 
 class Document:
     width = 2048
@@ -10,8 +11,10 @@ class Document:
     current_layer = ""
     doc_name = "Untitled"
 
-    def __init__(self, name):
+    def __init__(self, width, height, name):
         self.doc_name = name
+        self.width = width
+        self.height = height
         self.create_layer(0, 0, 0, 0, "base")
 
 
@@ -47,7 +50,18 @@ class Document:
         for i in range(1, len(self.images)):
             combined_im = Image.alpha_composite(self.images[i-1], self.images[i])
 
+        self.restart_document()
         self.create_layer_from_image(combined_im, "combined" )
+
+    def restart_document(self):
+        self.img = {}
+        self.pixels = {}
+        self.images = []
+
+        for image in self.layers:
+            os.remove(image)
+
+        self.layers = []
 
 
 
