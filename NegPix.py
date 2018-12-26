@@ -40,7 +40,7 @@ class Document:
 
     def image_save(self, name):
         image = self.images[name]
-        self.layers[name] = self.doc_name + "___" + name + "___.png"
+        self.layers[name] = f"{self.doc_name}/" + self.doc_name + "___" + name + "___.png"
         name = self.doc_name + "___" + name + "___.png"
         image.save(f"{self.doc_name}/" + name, "PNG")
 
