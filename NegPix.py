@@ -4,10 +4,9 @@ import os
 class Document:
     width = 2048
     height = 2048
-    img = {}
     pixels = {}
     layers = {}
-    images = []
+    images = {}
     current_layer = ""
     doc_name = "Untitled"
 
@@ -22,8 +21,7 @@ class Document:
         image = Image.new("RGBA", (self.height, self.width), color=(red, green, blue, alpha))
         pixel = image.load()
 
-        self.images.append(image)
-        self.img[name] = image
+        self.images[name] = image
         self.pixels[name] = pixel
 
         self.image_save(name)
@@ -32,33 +30,36 @@ class Document:
     def create_layer_from_image(self, image, name):
         pixel = image.load()
 
-        self.img[name] = image
+        self.images[name] = image
         self.pixels[name] = pixel
 
         self.image_save(name)
 
 
     def image_save(self, name):
-        image = self.img[name]
+        image = self.images[name]
         self.layers[name] = self.doc_name + "___" + name + "___.png"
         image.save(self.doc_name + "___" + name + "___.png")
 
 
     def merge_layers(self):
         combined_im = Image
+        img = []
 
-        for i in range(1, len(self.images)):
-            combined_im = Image.alpha_composite(self.images[i-1], self.images[i])
+        for key, value in self.images.items():
+            img.append(value)
 
-        self.restart_document()
+        for i in range(1, len(img)):
+            combined_im = Image.alpha_composite(img[i-1], img[i])
+
+        
         self.create_layer_from_image(combined_im, "combined_base" )
 
     def restart_document(self):
-        self.img = {}
         self.pixels = {}
         self.images = []
 
-        for key, value in self.layers:
+        for key, value in self.layers.items():
             os.remove(key)
 
         self.layers = {}
@@ -71,4 +72,15 @@ class Document:
     def return_layers(self):
         return self.layers
 
-    
+    def return_doc_name(self):
+        return self.doc_name
+
+    def return_dimensions(self):
+        return (self.width, self.height)
+
+    def return_pixels(self):
+        return self.pixels
+
+    def return_images(self):
+        return self.images
+
