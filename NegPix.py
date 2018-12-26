@@ -46,7 +46,7 @@ class Document:
 
 
     def merge_layers(self):
-        combined_im = Image
+        combined_im = Image.new("RGBA", (self.height, self.width), color=(0, 0, 0, 0))
         img = []
 
         for key, value in self.images.items():
@@ -88,3 +88,16 @@ class Document:
     def set_size(self, n_height, n_width):
         self.width = n_width
         self.height = n_height
+
+
+    def return_display(self):
+        combined_im = Image.new("RGBA", (self.height, self.width), color=(0, 0, 0, 0))
+        img = []
+
+        for key, value in self.images.items():
+            img.append(value)
+
+        for i in range(1, len(img)):
+            combined_im = Image.alpha_composite(img[i-1], img[i])
+
+        return combined_im
