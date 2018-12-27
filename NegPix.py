@@ -10,16 +10,17 @@ class Document:
     images = {}
     current_layer = ""
     doc_name = ""
-    dirname = ""
+    dirname = "Untitled"
 
     def __init__(self, width, height, name):
+        if not os.path.exists(name):
+            os.makedirs("./" + name + "/")
         self.doc_name = name
         self.width = width
         self.height = height
         self.create_layer(0, 0, 0, 0, "base")
-        self.dirname =  "./" + self.doc_name + "//"
-        if not os.path.exists(self.dirname):
-            os.makedirs(self.dirname)
+        self.dirname =  "./" + self.doc_name + "/"
+
 
     def create_layer(self, red, green, blue, alpha, name):
         image = Image.new("RGBA", (self.height, self.width), color=(red, green, blue, alpha))
@@ -100,4 +101,6 @@ class Document:
         for i in range(1, len(img)):
             combined_im = Image.alpha_composite(img[i-1], img[i])
 
-        return combined_im
+        combined_im.save(f"{self.doc_name}/" + "display.png", "PNG")
+
+        return f"{self.doc_name}/" + "display.png"

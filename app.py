@@ -1,57 +1,18 @@
-from __future__ import absolute_import
+# -*- coding: utf-8 -*-
+import glfw
+import OpenGL.GL as gl
 
-import sys
-
-import pygame
-from OpenGL.GL import *
-from OpenGL.GLU import *
-
-from imgui.integrations.pygame import PygameRenderer
 import imgui
-
-
-def loadTexture():
-    textureSurface = pygame.image.load('batman.png')
-    textureSurface = pygame.transform.flip(textureSurface, False, True)
-    textureData = pygame.image.tostring(textureSurface,"RGBA",1)
-    width = textureSurface.get_width()
-    height = textureSurface.get_height()
-
-    glEnable(GL_TEXTURE_2D)
-    texid = glGenTextures(1)
-
-    glBindTexture(GL_TEXTURE_2D, texid)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, textureData)
-
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-
-    return texid
+from imgui.integrations.glfw import GlfwRenderer
 
 
 def main():
-    pygame.init()
+    window = impl_glfw_init()
+    impl = GlfwRenderer(window)
 
-
-    size = 800, 600
-
-    pygame.display.set_mode(size, pygame.DOUBLEBUF | pygame.OPENGL)
-
-    io = imgui.get_io()
-    io.fonts.add_font_default()
-    io.display_size = size
-
-    renderer = PygameRenderer()
-    color = (0.1, 0.3, 0.1, 1)
-    bg_color = (1, 1, 1, 1)
-    while 1:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                sys.exit()
-
-            renderer.process_event(event)
+    while not glfw.window_should_close(window):
+        glfw.poll_events()
+        impl.process_inputs()
 
         imgui.new_frame()
 
@@ -73,23 +34,46 @@ def main():
         imgui.begin("Custom window", True)
         imgui.text("Bar")
         imgui.text_colored("Eggs", 0.2, 1., 0.)
-        _, color = imgui.color_edit4("Alpha", *color, show_alpha=True)
-        _, color = imgui.color_edit4("No alpha", *color, show_alpha=False)
-        bg_color = color
-
-        if imgui.button("Test"):
-            sys.exit()
-        image = loadTexture()
-        imgui.image(image, 256, 256)
         imgui.end()
 
-        # note: cannot use screen.fill((1, 1, 1)) because pygame's screen
-        #       does not support fill() on OpenGL sufraces
-        glClearColor(bg_color[0], bg_color[1], bg_color[2], bg_color[3])
-        glClear(GL_COLOR_BUFFER_BIT)
-        imgui.render()
+        gl.glClearColor(1., 1., 1., 1)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-        pygame.display.flip()
+        imgui.render()
+        impl.render(imgui.get_draw_data())
+        glfw.swap_buffers(window)
+
+    impl.shutdown()
+    glfw.terminate()
+
+
+def impl_glfw_init():
+    width, height = 1280, 720
+    window_name = "minimal ImGui/GLFW3 example"
+
+    if not glfw.init():
+        print("Could not initialize OpenGL context")
+        exit(1)
+
+    # OS X supports only forward-compatible core profiles from 3.2
+    glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, 3)
+    glfw.window_hint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+
+    glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, gl.GL_TRUE)
+
+    # Create a windowed mode window and its OpenGL context
+    window = glfw.create_window(
+        int(width), int(height), window_name, None, None
+    )
+    glfw.make_context_current(window)
+
+    if not window:
+        glfw.terminate()
+        print("Could not initialize Window")
+        exit(1)
+
+    return window
 
 if __name__ == "__main__":
     main()
